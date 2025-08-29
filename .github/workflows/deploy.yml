@@ -38,26 +38,26 @@ jobs:
 
       - name: Build and prepare for deployment
         run: |
-          # Create a root deploy directory
-          mkdir -p deploy
+          # Create a root dist directory
+          mkdir -p dist
 
           # Loop through each slide directory and build it
           for dir in slides/lesson-*; do
             if [ -d "$dir" ]; then
               slide_name=$(basename "$dir")
               # The base URL must be set for each slide deck
-              pnpm --filter "$slide_name" run build -- --base /${{ github.event.repository.name }}/$slide_name/
+              pnpm --filter "$slide_name" run build --base /${{ github.event.repository.name }}/$slide_name/
               
-              # Copy the built files to the single deploy folder
-              mkdir -p deploy/$slide_name
-              cp -r "$dir"/dist/* deploy/$slide_name
+              # Copy the built files to the single dist folder
+              mkdir -p dist/$slide_name
+              cp -r "$dir"/dist/* dist/$slide_name
             fi
           done
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: deploy
+          path: dist
       
   deploy-to-pages:
     needs: build-and-deploy
