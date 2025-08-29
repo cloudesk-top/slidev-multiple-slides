@@ -42,7 +42,7 @@ jobs:
           mkdir -p deploy
 
           # Loop through each slide directory and build it
-          for dir in slides/*; do
+          for dir in slides/lesson-*; do
             if [ -d "$dir" ]; then
               slide_name=$(basename "$dir")
               # The base URL must be set for each slide deck
