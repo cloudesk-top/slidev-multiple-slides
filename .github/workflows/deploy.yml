@@ -46,7 +46,7 @@ jobs:
             if [ -d "$dir" ]; then
               slide_name=$(basename "$dir")
               # The base URL must be set for each slide deck
-              pnpm run build --filter "$slide_name" -- --base /${{ github.event.repository.name }}/$slide_name/
+              pnpm run --filter "$slide_name" -r build -- --base /${{ github.event.repository.name }}/$slide_name/
               
               # Copy the built files to the single deploy folder
               mkdir -p deploy/$slide_name
