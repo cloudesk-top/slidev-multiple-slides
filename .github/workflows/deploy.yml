@@ -1,0 +1,71 @@
+name: Deploy Slidev Presentations
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 10
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build and prepare for deployment
+        run: |
+          # Create a root deploy directory
+          mkdir -p deploy
+
+          # Loop through each slide directory and build it
+          for dir in slides/*; do
+            if [ -d "$dir" ]; then
+              slide_name=$(basename "$dir")
+              # The base URL must be set for each slide deck
+              pnpm run build --filter "$slide_name" -- --base /${{ github.event.repository.name }}/$slide_name/
+              
+              # Copy the built files to the single deploy folder
+              mkdir -p deploy/$slide_name
+              cp -r "$dir"/dist/* deploy/$slide_name
+            fi
+          done
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: deploy
+      
+  deploy-to-pages:
+    needs: build-and-deploy
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
